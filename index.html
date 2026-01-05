@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lovey Chat</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- USER SELECTION -->
+<div id="login">
+  <h2>Lovey Chat</h2>
+  <button onclick="startUser1()">User 1 (Create Code)</button>
+  <button onclick="startUser2()">User 2 (Enter Code)</button>
+</div>
+
+<!-- USER 1 CODE SCREEN -->
+<div id="codeScreen" style="display:none;">
+  <h3>Share this code</h3>
+  <div id="roomCode"></div>
+  <button onclick="enterChat()">Enter Chat</button>
+</div>
+
+<!-- USER 2 JOIN SCREEN -->
+<div id="joinScreen" style="display:none;">
+  <h3>Enter Code</h3>
+  <input id="codeInput" placeholder="Enter 6-digit code">
+  <button onclick="verifyCode()">Join Chat</button>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chat" style="display:none;">
+  <div id="chatHeader">
+    <span>Lovey Chat</span>
+    <button onclick="clearChat()">Delete</button>
+  </div>
+
+  <div id="messages"></div>
+  <div id="typingStatus"></div>
+
+  <!-- EMOJI BAR -->
+  <div id="emojiBar">
+    <span onclick="addEmoji('😀')">😀</span>
+    <span onclick="addEmoji('😂')">😂</span>
+    <span onclick="addEmoji('👍')">👍</span>
+    <span onclick="addEmoji('🔥')">🔥</span>
+  </div>
+
+  <div id="inputArea">
+    <input id="messageInput" placeholder="Type a message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script src="script.js"></script>
+</body>
+</html>

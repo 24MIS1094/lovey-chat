@@ -1,53 +1,44 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { Redis } = require("@upstash/redis");
-const { v4: uuid } = require("uuid");
+const socket = io();
+let role = "";
+let roomCode = "";
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+function choose(r) {
+  role = r;
+  document.getElementById("select").style.display = "none";
+  document.getElementById(r.toLowerCase()).style.display = "block";
+}
 
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN
+function createRoom() {
+  socket.emit("create-room");
+}
+
+socket.on("room-created", code => {
+  roomCode = code;
+  document.getElementById("code").innerText = code;
 });
 
-io.on("connection", socket => {
+function joinRoom() {
+  const code = document.getElementById("joinCode").value.trim().toUpperCase();
+  socket.emit("join-room", { code, user: role });
+}
 
-  socket.on("create-room", async () => {
-    const code = uuid().slice(0, 6).toUpperCase();
-    await redis.set(`room:${code}`, { users: [] });
-    socket.emit("room-created", code);
-  });
+function enterChat() {
+  socket.emit("join-room", { code: roomCode, user: role });
+}
 
-  socket.on("join-room", async ({ code, user }) => {
-    const room = await redis.get(`room:${code}`);
-
-    if (!room || room.users.length >= 2) {
-      socket.emit("wrong-code");
-      return;
-    }
-
-    room.users.push(user);
-    await redis.set(`room:${code}`, room);
-
-    socket.join(code);
-    socket.room = code;
-    socket.user = user;
-
-    io.to(code).emit("system", `${user} joined`);
-  });
-
-  socket.on("message", text => {
-    io.to(socket.room).emit("message", {
-      user: socket.user,
-      text
-    });
-  });
-
+socket.on("wrong-code", () => {
+  alert("Wrong code");
 });
 
-server.listen(process.env.PORT || 10000, () =>
-  console.log("Redis backend running")
-);
+socket.on("system", msg => add(msg));
+socket.on("message", m => add(`${m.user}: ${m.text}`));
+
+function send() {
+  socket.emit("message", document.getElementById("msg").value);
+  document.getElementById("msg").value = "";
+}
+
+function add(t) {
+  document.getElementById("chat").style.display = "block";
+  document.getElementById("messages").innerHTML += `<div>${t}</div>`;
+}

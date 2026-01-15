@@ -1,45 +1,50 @@
+console.log("script.js loaded"); // 🔥 DEBUG
+
 const socket = io();
 
 let role = "";
 let roomCode = "";
 
-function hideAll() {
-  document.getElementById("select").style.display = "none";
-  document.getElementById("astrae").style.display = "none";
-  document.getElementById("cryon").style.display = "none";
-}
+const select = document.getElementById("select");
+const astrae = document.getElementById("astrae");
+const cryon = document.getElementById("cryon");
+const chat = document.getElementById("chat");
 
-function selectAstrae() {
+document.getElementById("astraeBtn").addEventListener("click", () => {
+  console.log("Astrae clicked");
   role = "Astrae";
-  hideAll();
-  document.getElementById("astrae").style.display = "block";
-}
+  select.style.display = "none";
+  astrae.style.display = "block";
+});
 
-function selectCryon() {
+document.getElementById("cryonBtn").addEventListener("click", () => {
+  console.log("Cryon clicked");
   role = "Cryon";
-  hideAll();
-  document.getElementById("cryon").style.display = "block";
-}
+  select.style.display = "none";
+  cryon.style.display = "block";
+});
 
-function createRoom() {
+document.getElementById("genBtn").addEventListener("click", () => {
+  console.log("Generate room");
   socket.emit("create-room");
-}
+});
 
 socket.on("room-created", code => {
+  console.log("Room created:", code);
   roomCode = code;
   document.getElementById("code").innerText = code;
 });
 
-function enterAstrae() {
+document.getElementById("enterAstrae").addEventListener("click", () => {
   socket.emit("join-room", { code: roomCode, user: role });
-  document.getElementById("astrae").style.display = "none";
-  document.getElementById("chat").style.display = "block";
-}
+  astrae.style.display = "none";
+  chat.style.display = "block";
+});
 
-function enterCryon() {
+document.getElementById("enterCryon").addEventListener("click", () => {
   const code = document.getElementById("joinCode").value.trim().toUpperCase();
   socket.emit("join-room", { code, user: role });
-}
+});
 
 socket.on("wrong-code", () => {
   alert("Wrong Code");
@@ -48,12 +53,12 @@ socket.on("wrong-code", () => {
 socket.on("system", msg => add(msg));
 socket.on("message", m => add(`${m.user}: ${m.text}`));
 
-function send() {
+document.getElementById("sendBtn").addEventListener("click", () => {
   socket.emit("message", document.getElementById("msg").value);
   document.getElementById("msg").value = "";
-}
+});
 
 function add(text) {
-  document.getElementById("chat").style.display = "block";
+  chat.style.display = "block";
   document.getElementById("messages").innerHTML += `<div>${text}</div>`;
 }

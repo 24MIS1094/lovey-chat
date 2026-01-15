@@ -7,28 +7,33 @@
 <body>
 
 <div id="select">
-  <button onclick="selectAstrae()">Astrae ✨</button>
-  <button onclick="selectCryon()">Cryon ❄️</button>
+  <button id="astraeBtn">Astrae ✨</button>
+  <button id="cryonBtn">Cryon ❄️</button>
 </div>
 
 <div id="astrae" class="hidden">
-  <button onclick="createRoom()">Generate Code</button>
+  <button id="genBtn">Generate Code</button>
   <h2 id="code"></h2>
-  <button onclick="enterAstrae()">Enter Chat</button>
+  <button id="enterAstrae">Enter Chat</button>
 </div>
 
 <div id="cryon" class="hidden">
   <input id="joinCode" placeholder="Enter Code">
-  <button onclick="enterCryon()">Enter Chat</button>
+  <button id="enterCryon">Enter Chat</button>
 </div>
 
 <div id="chat" class="hidden">
   <div id="messages"></div>
   <input id="msg">
-  <button onclick="send()">Send</button>
+  <button id="sendBtn">Send</button>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
+
+<script>
+  console.log("HTML loaded");   // 🔥 DEBUG
+</script>
+
 </body>
 </html>

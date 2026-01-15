@@ -1,111 +1,111 @@
-// ⚠️ CHANGE THIS URL TO YOUR RENDER URL!
-const socket = io("https://lovey-chat-backend.onrender.com"); 
+const socket = io("https://lovey-chat.onrender.com");
 
-let myUser = "", myRoom = "", mediaRecorder, audioChunks = [];
+let role = "";
+let roomCode = "";
+let recorder, audioChunks = [];
 
-function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-    document.getElementById(id).classList.remove('hidden');
+function asAstrae() {
+  role = "Astrae";
+  document.getElementById("select").style.display = "none";
+  document.getElementById("astrae").style.display = "block";
 }
 
-function startAstrae() {
-    myUser = "Astrae";
-    socket.emit("create-room");
+function asCryon() {
+  role = "Cryon";
+  document.getElementById("select").style.display = "none";
+  document.getElementById("cryon").style.display = "block";
 }
 
-socket.on("room-created", (code) => {
-    myRoom = code;
-    document.getElementById("code-display").innerText = code;
-    showScreen("astrae-page");
+function createRoom() {
+  socket.emit("create-room");
+}
+
+socket.on("room-created", code => {
+  roomCode = code;
+  document.getElementById("code").innerText = "Code: " + code;
 });
 
-function joinChat(user) {
-    socket.emit("join-room", { code: myRoom, user });
+function enterChat() {
+  socket.emit("join-room", { code: roomCode, user: role });
+  showChat();
 }
 
-function startCryon() {
-    myUser = "Cryon";
-    showScreen("cryon-page");
-}
-
-function verifyAndJoin() {
-    myRoom = document.getElementById("join-input").value.toUpperCase();
-    socket.emit("join-room", { code: myRoom, user: "Cryon" });
+function joinRoom() {
+  const code = document.getElementById("joinCode").value;
+  socket.emit("join-room", { code, user: role });
 }
 
 socket.on("wrong-code", () => {
-    document.getElementById("error-msg").innerText = "❌ Invalid Code";
+  document.getElementById("error").innerText = "Wrong code ❌";
 });
 
-socket.on("system", (data) => {
-    document.getElementById("display-name").innerText = "You are " + myUser;
-    showScreen("chat-screen");
-    addMsg("System", data.user + " " + data.msg);
-});
-
-function sendMsg() {
-    const val = document.getElementById("msg-input").value;
-    if(!val) return;
-    socket.emit("message", val);
-    document.getElementById("msg-input").value = "";
+function showChat() {
+  document.getElementById("astrae").style.display = "none";
+  document.getElementById("cryon").style.display = "none";
+  document.getElementById("chat").style.display = "block";
 }
 
-socket.on("message", d => addMsg(d.user, d.text));
+socket.on("system", msg => add(msg));
+socket.on("message", m => add(`${m.user}: ${m.text}`));
 
-function addMsg(user, text) {
-    const m = document.createElement("div");
-    m.className = "msg-bubble";
-    m.innerHTML = `<b>${user}:</b> ${text}`;
-    document.getElementById("messages").append(m);
-    document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+function send() {
+  const t = msg.value;
+  socket.emit("message", t);
+  msg.value = "";
 }
 
-/* Image Logic */
-document.getElementById("img-input").onchange = e => {
-    const file = e.target.files[0];
-    const reader = new FileReader();
-    reader.onload = () => socket.emit("image", reader.result);
-    reader.readAsDataURL(file);
-};
+function add(text) {
+  messages.innerHTML += `<div>${text}</div>`;
+}
 
-socket.on("image", d => {
-    const img = document.createElement("img");
-    img.src = d.data;
-    img.id = d.id;
-    img.className = "view-once";
-    img.title = "Click to view. Expires after 2 views.";
-    img.onclick = () => { window.open(d.data); socket.emit("view-image", d.id); };
-    document.getElementById("messages").append(img);
+function sendImage() {
+  const file = img.files[0];
+  const r = new FileReader();
+  r.onload = () => socket.emit("image", r.result);
+  r.readAsDataURL(file);
+}
+
+socket.on("image", ({ id, data }) => {
+  const i = document.createElement("img");
+  i.src = data;
+  i.width = 150;
+  i.onclick = () => socket.emit("view-image", id);
+  i.id = id;
+  messages.appendChild(i);
 });
 
 socket.on("remove-image", id => {
-    const el = document.getElementById(id);
-    if(el) el.remove();
+  const el = document.getElementById(id);
+  if (el) el.remove();
 });
 
-/* Voice Logic */
-function startRec() {
-    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        mediaRecorder = new MediaRecorder(stream);
-        mediaRecorder.start();
-        audioChunks = [];
-        mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    });
-}
-
-function stopRec() {
-    if(!mediaRecorder) return;
-    mediaRecorder.stop();
-    mediaRecorder.onstop = () => {
+function record() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
+    recorder = new MediaRecorder(s);
+    recorder.start();
+    recorder.ondataavailable = e => audioChunks.push(e.data);
+    setTimeout(() => {
+      recorder.stop();
+      recorder.onstop = () => {
         const blob = new Blob(audioChunks);
-        const reader = new FileReader();
-        reader.onload = () => socket.emit("voice", reader.result);
-        reader.readAsDataURL(blob);
-    };
+        const r = new FileReader();
+        r.onload = () => socket.emit("voice", r.result);
+        r.readAsDataURL(blob);
+        audioChunks = [];
+      };
+    }, 3000);
+  });
 }
 
-socket.on("voice", d => {
-    const au = new Audio(d.audio);
-    au.controls = true;
-    document.getElementById("messages").append(au);
+socket.on("voice", audio => {
+  const a = document.createElement("audio");
+  a.src = audio;
+  a.controls = true;
+  messages.appendChild(a);
 });
+
+function clearChat() {
+  socket.emit("clear-chat");
+}
+
+socket.on("clear", () => messages.innerHTML = "");

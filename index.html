@@ -1,55 +1,43 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lovey Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
-<body class="dark-theme">
+<body>
 
-  <div id="start-screen" class="screen">
-    <h1>Lovey Chat</h1>
-    <button onclick="startAstrae()">Enter as Astrae</button>
-    <button onclick="startCryon()">Enter as Cryon</button>
-  </div>
+<h1>Lovey Chat 💜</h1>
 
-  <div id="astrae-page" class="screen hidden">
-    <h2>Astrae</h2>
-    <div class="code-container">
-      <p>Share this code with Cryon:</p>
-      <div id="code-display">Generating...</div>
-    </div>
-    <button onclick="joinChat('Astrae')">Enter Chat</button>
-  </div>
+<div id="select">
+  <button onclick="asAstrae()">Enter as Astrae ✨</button>
+  <button onclick="asCryon()">Enter as Cryon ❄️</button>
+</div>
 
-  <div id="cryon-page" class="screen hidden">
-    <h2>Cryon</h2>
-    <input type="text" id="join-input" placeholder="Enter Astrae Code">
-    <button onclick="verifyAndJoin()">Enter Chat</button>
-    <p id="error-msg"></p>
-  </div>
+<div id="astrae" class="box">
+  <h2>Astrae</h2>
+  <button onclick="createRoom()">Generate Code</button>
+  <p id="code"></p>
+  <button onclick="enterChat()">Enter Chat</button>
+</div>
 
-  <div id="chat-screen" class="screen hidden">
-    <header>
-      <span id="display-name"></span>
-      <select onchange="document.body.className=this.value">
-        <option value="dark-theme">Dark</option>
-        <option value="light-theme">Light</option>
-        <option value="pink-theme">Lovey</option>
-      </select>
-    </header>
-    <div id="messages"></div>
-    <div class="input-area">
-      <button onclick="document.getElementById('img-input').click()">🖼️</button>
-      <input type="file" id="img-input" hidden accept="image/*">
-      <input type="text" id="msg-input" placeholder="Type message...">
-      <button onclick="sendMsg()">➤</button>
-      <button id="voice-btn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</button>
-    </div>
-  </div>
+<div id="cryon" class="box">
+  <h2>Cryon</h2>
+  <input id="joinCode" placeholder="Enter Astrae Code">
+  <button onclick="joinRoom()">Enter Chat</button>
+  <p id="error"></p>
+</div>
 
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="script.js"></script>
+<div id="chat">
+  <div id="messages"></div>
+
+  <input id="msg" placeholder="Type message 💬">
+  <button onclick="send()">Send</button>
+  <input type="file" id="img" onchange="sendImage()">
+  <button onclick="record()">🎙️</button>
+  <button onclick="clearChat()">🗑️</button>
+</div>
+
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="script.js"></script>
 </body>
 </html>

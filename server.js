@@ -5,45 +5,56 @@ const { v4: uuid } = require("uuid");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(express.static("public"));
-
-const rooms = {};
+const rooms = {}; 
 
 io.on("connection", (socket) => {
-
+  // Astrae creates the room
   socket.on("create-room", () => {
-    const code = uuid().slice(0, 6).toUpperCase();
-    rooms[code] = { users: [] };
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    rooms[code] = { users: [], images: {} };
     socket.emit("room-created", code);
   });
 
-  socket.on("join-room", ({ code, name }) => {
-    if (!rooms[code]) {
+  // Joining logic
+  socket.on("join-room", ({ code, user }) => {
+    if (!rooms[code] || rooms[code].users.length >= 2) {
       socket.emit("wrong-code");
       return;
     }
-
-    if (rooms[code].users.length >= 2) return;
-
-    rooms[code].users.push(name);
     socket.join(code);
-
-    socket.roomCode = code;
-    socket.username = name;
-
-    io.to(code).emit("system", `${name} joined the chat`);
+    socket.room = code;
+    socket.user = user;
+    rooms[code].users.push(user);
+    io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", (msg) => {
-    io.to(socket.roomCode).emit("message", {
-      user: socket.username,
-      text: msg
-    });
+  socket.on("message", (text) => {
+    io.to(socket.room).emit("message", { user: socket.user, text });
+  });
+
+  // View 2 times logic
+  socket.on("image", (data) => {
+    const id = uuid();
+    rooms[socket.room].images[id] = 2; 
+    io.to(socket.room).emit("image", { id, data });
+  });
+
+  socket.on("view-image", (id) => {
+    if (rooms[socket.room] && rooms[socket.room].images[id]) {
+      rooms[socket.room].images[id]--;
+      if (rooms[socket.room].images[id] <= 0) {
+        delete rooms[socket.room].images[id];
+        io.to(socket.room).emit("remove-image", id);
+      }
+    }
+  });
+
+  socket.on("voice", (audio) => {
+    io.to(socket.room).emit("voice", { user: socket.user, audio });
   });
 });
 
-server.listen(3000, () => {
-  console.log("Lovey Chat running on http://localhost:3000");
-});
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

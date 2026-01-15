@@ -2,41 +2,54 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Lovey Chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="./style.css">
+  <title>Lovey Chat</title>
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="dark-theme">
 
-<!-- START SCREEN -->
-<div id="start" class="screen">
-  <h1>Lovey Chat</h1>
-  <button onclick="goAstrae()">Enter as Astrae</button>
-  <button onclick="goCryon()">Enter as Cryon</button>
-</div>
+  <div id="start-screen" class="screen">
+    <h1>Lovey Chat</h1>
+    <button onclick="startAstrae()">Enter as Astrae</button>
+    <button onclick="startCryon()">Enter as Cryon</button>
+  </div>
 
-<!-- ASTRAE PAGE -->
-<div id="astraePage" class="screen hidden">
-  <h2>Astrae</h2>
-  <p>Your Code</p>
-  <div id="astraeCode"></div>
-  <button onclick="enterChat('Astrae')">Enter Chat</button>
-</div>
+  <div id="astrae-page" class="screen hidden">
+    <h2>Astrae</h2>
+    <div class="code-container">
+      <p>Share this code:</p>
+      <h1 id="generated-code">------</h1>
+    </div>
+    <button onclick="joinChat('Astrae')">Enter Chat</button>
+  </div>
 
-<!-- CRYON PAGE -->
-<div id="cryonPage" class="screen hidden">
-  <h2>Cryon</h2>
-  <input id="cryonInput" placeholder="Enter Astrae Code">
-  <button onclick="checkCryon()">Enter Chat</button>
-  <p id="error"></p>
-</div>
+  <div id="cryon-page" class="screen hidden">
+    <h2>Cryon</h2>
+    <input type="text" id="join-input" placeholder="Enter Astrae Code">
+    <button onclick="verifyAndJoin()">Enter Chat</button>
+    <p id="error-msg"></p>
+  </div>
 
-<!-- CHAT -->
-<div id="chat" class="screen hidden">
-  <h2 id="userTitle"></h2>
-  <p>Chat started</p>
-</div>
+  <div id="chat-screen" class="screen hidden">
+    <header>
+      <span id="display-name"></span>
+      <select onchange="changeTheme(this.value)">
+        <option value="dark-theme">Dark</option>
+        <option value="light-theme">Light</option>
+        <option value="pink-theme">Lovey</option>
+      </select>
+    </header>
+    <div id="messages"></div>
+    <div class="input-area">
+      <button onclick="triggerImg()">🖼️</button>
+      <input type="file" id="img-input" hidden accept="image/*">
+      <input type="text" id="msg-input" placeholder="Type...">
+      <button onclick="sendMsg()">➤</button>
+      <button id="voice-btn" onmousedown="startRec()" onmouseup="stopRec()">🎤</button>
+    </div>
+  </div>
 
-<script src="./script.js"></script>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

@@ -1,56 +1,124 @@
-const start = document.getElementById("start");
-const astraePage = document.getElementById("astraePage");
-const cryonPage = document.getElementById("cryonPage");
-const chat = document.getElementById("chat");
+// REPLACE THIS URL with your Render backend URL!
+const socket = io("https://your-backend-name.onrender.com");
 
-const astraeCodeBox = document.getElementById("astraeCode");
-const cryonInput = document.getElementById("cryonInput");
-const error = document.getElementById("error");
-const userTitle = document.getElementById("userTitle");
+let myUser = "";
+let myRoom = "";
+let mediaRecorder;
+let audioChunks = [];
 
-// Astrae flow
-function goAstrae() {
-  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
-  localStorage.setItem("lovey_code", code);
-
-  astraeCodeBox.innerText = code;
-
-  start.classList.add("hidden");
-  cryonPage.classList.add("hidden");
-  astraePage.classList.remove("hidden");
+/* UI Navigation */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
 }
 
-// Cryon flow
-function goCryon() {
-  start.classList.add("hidden");
-  astraePage.classList.add("hidden");
-  cryonPage.classList.remove("hidden");
+/* Astrae Flow */
+function startAstrae() {
+  myUser = "Astrae";
+  socket.emit("create-room");
 }
 
-// Cryon code check
-function checkCryon() {
-  const savedCode = localStorage.getItem("lovey_code");
-  const entered = cryonInput.value.trim().toUpperCase();
+socket.on("room-created", (code) => {
+  myRoom = code;
+  document.getElementById("generated-code").innerText = code;
+  showScreen("astrae-page");
+});
 
-  if (!entered) {
-    error.innerText = "Enter the code";
-    return;
-  }
-
-  if (entered !== savedCode) {
-    error.innerText = "❌ Wrong code";
-    return;
-  }
-
-  enterChat("Cryon");
+function joinChat(user) {
+  socket.emit("join-room", { code: myRoom, user });
 }
 
-// Enter chat
-function enterChat(user) {
-  start.classList.add("hidden");
-  astraePage.classList.add("hidden");
-  cryonPage.classList.add("hidden");
-  chat.classList.remove("hidden");
+/* Cryon Flow */
+function startCryon() {
+  myUser = "Cryon";
+  showScreen("cryon-page");
+}
 
-  userTitle.innerText = `You are ${user}`;
+function verifyAndJoin() {
+  myRoom = document.getElementById("join-input").value.toUpperCase();
+  socket.emit("join-room", { code: myRoom, user: "Cryon" });
+}
+
+socket.on("wrong-code", () => {
+  document.getElementById("error-msg").innerText = "❌ Invalid Code";
+});
+
+/* Success Join */
+socket.on("system", (msg) => {
+  document.getElementById("display-name").innerText = "You are " + myUser;
+  showScreen("chat-screen");
+});
+
+/* Chat Logic */
+function sendMsg() {
+  const val = document.getElementById("msg-input").value;
+  if(!val) return;
+  socket.emit("message", val);
+  document.getElementById("msg-input").value = "";
+}
+
+socket.on("message", d => {
+  const m = document.createElement("div");
+  m.className = "msg-bubble";
+  m.innerHTML = `<b>${d.user}:</b> ${d.text}`;
+  document.getElementById("messages").append(m);
+});
+
+/* Image Logic (View 2 times) */
+function triggerImg() { document.getElementById("img-input").click(); }
+
+document.getElementById("img-input").onchange = e => {
+  const file = e.target.files[0];
+  const reader = new FileReader();
+  reader.onload = () => socket.emit("image", reader.result);
+  reader.readAsDataURL(file);
+};
+
+socket.on("image", d => {
+  const img = document.createElement("img");
+  img.src = d.data;
+  img.id = d.id;
+  img.className = "view-once";
+  img.onclick = () => {
+    window.open(d.data);
+    socket.emit("view-image", d.id);
+  };
+  document.getElementById("messages").append(img);
+});
+
+socket.on("remove-image", id => {
+  const el = document.getElementById(id);
+  if(el) el.remove();
+  document.getElementById("messages").innerHTML += "<i>(Image expired)</i>";
+});
+
+/* Voice Logic */
+function startRec() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+    audioChunks = [];
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+  });
+}
+
+function stopRec() {
+  mediaRecorder.stop();
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(audioChunks);
+    const reader = new FileReader();
+    reader.onload = () => socket.emit("voice", reader.result);
+    reader.readAsDataURL(blob);
+  };
+}
+
+socket.on("voice", d => {
+  const audio = new Audio(d.audio);
+  audio.controls = true;
+  document.getElementById("messages").append(audio);
+});
+
+/* Theme */
+function changeTheme(theme) {
+  document.body.className = theme;
 }

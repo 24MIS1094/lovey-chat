@@ -1,29 +1,24 @@
-const socket = io("https://lovey-chat.onrender.com");
+const socket = io();
 
 let role = "";
 let roomCode = "";
 
-const select = document.getElementById("screen-select");
-const astrae = document.getElementById("screen-astrae");
-const cryon = document.getElementById("screen-cryon");
-const chat = document.getElementById("chat");
-
 function hideAll() {
-  select.classList.add("hidden");
-  astrae.classList.add("hidden");
-  cryon.classList.add("hidden");
+  document.getElementById("select").style.display = "none";
+  document.getElementById("astrae").style.display = "none";
+  document.getElementById("cryon").style.display = "none";
 }
 
 function selectAstrae() {
   role = "Astrae";
   hideAll();
-  astrae.classList.remove("hidden");
+  document.getElementById("astrae").style.display = "block";
 }
 
 function selectCryon() {
   role = "Cryon";
   hideAll();
-  cryon.classList.remove("hidden");
+  document.getElementById("cryon").style.display = "block";
 }
 
 function createRoom() {
@@ -32,26 +27,26 @@ function createRoom() {
 
 socket.on("room-created", code => {
   roomCode = code;
-  document.getElementById("astrae-code").innerText = "Code: " + code;
+  document.getElementById("code").innerText = code;
 });
 
 function enterAstrae() {
   socket.emit("join-room", { code: roomCode, user: role });
-  astrae.classList.add("hidden");
-  chat.classList.remove("hidden");
+  document.getElementById("astrae").style.display = "none";
+  document.getElementById("chat").style.display = "block";
 }
 
 function enterCryon() {
-  const code = document.getElementById("cryon-code").value;
+  const code = document.getElementById("joinCode").value.trim().toUpperCase();
   socket.emit("join-room", { code, user: role });
 }
 
 socket.on("wrong-code", () => {
-  document.getElementById("error").innerText = "Wrong Code";
+  alert("Wrong Code");
 });
 
 socket.on("system", msg => add(msg));
-socket.on("message", m => add(m.user + ": " + m.text));
+socket.on("message", m => add(`${m.user}: ${m.text}`));
 
 function send() {
   socket.emit("message", document.getElementById("msg").value);
@@ -59,5 +54,6 @@ function send() {
 }
 
 function add(text) {
+  document.getElementById("chat").style.display = "block";
   document.getElementById("messages").innerHTML += `<div>${text}</div>`;
 }

@@ -7,19 +7,19 @@
 <body>
 
 <div id="select">
-  <button onclick="choose('Astrae')">Astrae ✨</button>
-  <button onclick="choose('Cryon')">Cryon ❄️</button>
+  <button onclick="selectAstrae()">Astrae ✨</button>
+  <button onclick="selectCryon()">Cryon ❄️</button>
 </div>
 
 <div id="astrae" class="hidden">
   <button onclick="createRoom()">Generate Code</button>
   <h2 id="code"></h2>
-  <button onclick="enterChat()">Enter Chat</button>
+  <button onclick="enterAstrae()">Enter Chat</button>
 </div>
 
 <div id="cryon" class="hidden">
   <input id="joinCode" placeholder="Enter Code">
-  <button onclick="joinRoom()">Enter Chat</button>
+  <button onclick="enterCryon()">Enter Chat</button>
 </div>
 
 <div id="chat" class="hidden">

@@ -3,16 +3,34 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Redis } = require("@upstash/redis");
 const { v4: uuid } = require("uuid");
+const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
 
-app.use(express.static("public"));
+const io = new Server(server, {
+  cors: { origin: "*" }
+});
+
+// ✅ serve public files
+app.use(express.static(path.join(__dirname, "public")));
+
+// ✅ serve socket.io client
+app.get("/socket.io/socket.io.js", (req, res) => {
+  res.sendFile(
+    path.join(
+      __dirname,
+      "node_modules",
+      "socket.io",
+      "client-dist",
+      "socket.io.js"
+    )
+  );
+});
 
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN
+  url: process.env.UPSTASH_REDIS_REST_URL.trim(),
+  token: process.env.UPSTASH_REDIS_REST_TOKEN.trim()
 });
 
 io.on("connection", socket => {
@@ -46,15 +64,14 @@ io.on("connection", socket => {
     io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", text => {
+  socket.on("message", msg => {
     io.to(socket.room).emit("message", {
       user: socket.user,
-      text
+      text: msg
     });
   });
-
 });
 
-server.listen(process.env.PORT || 10000, () => {
-  console.log("Lovey Chat backend running");
-});
+server.listen(process.env.PORT || 10000, () =>
+  console.log("Lovey Chat backend running")
+);

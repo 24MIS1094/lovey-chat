@@ -6,32 +6,27 @@
 </head>
 <body>
 
-<h1>Lovey Chat 💜</h1>
-
-<div id="select">
-  <button onclick="astrae()">Astrae ✨</button>
-  <button onclick="cryon()">Cryon ❄️</button>
+<div id="screen-select" class="card">
+  <button class="btn" onclick="selectAstrae()">Astrae </button>
+  <button class="btn" onclick="selectCryon()">Cryon </button>
 </div>
 
-<div id="a" class="box">
-  <p id="code"></p>
-  <button onclick="create()">Generate Code</button>
-  <button onclick="enter()">Enter Chat</button>
+<div id="screen-astrae" class="card hidden">
+  <p id="astrae-code">Code: ------</p>
+  <button class="btn" onclick="createRoom()">Generate Code</button>
+  <button class="btn" onclick="enterAstrae()">Enter Chat</button>
 </div>
 
-<div id="c" class="box">
-  <input id="join" placeholder="Enter Code">
-  <button onclick="join()">Enter Chat</button>
-  <p id="err"></p>
+<div id="screen-cryon" class="card hidden">
+  <input id="cryon-code" placeholder="Enter Astrae Code">
+  <button class="btn" onclick="enterCryon()">Enter Chat</button>
+  <p id="error"></p>
 </div>
 
-<div id="chat">
-  <div id="msgs"></div>
-  <input id="m" placeholder="Message">
+<div id="chat" class="hidden">
+  <div id="messages"></div>
+  <input id="msg" placeholder="Message">
   <button onclick="send()">Send</button>
-  <input type="file" onchange="img(this)">
-  <button onclick="voice()">🎙️</button>
-  <button onclick="clearChat()">🗑️</button>
 </div>
 
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>

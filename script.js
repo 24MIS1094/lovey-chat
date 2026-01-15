@@ -1,6 +1,6 @@
 console.log("script.js loaded"); // 🔥 DEBUG
 
-const socket = io();
+const socket = io("https://lovey-chat.onrender.com");
 
 let role = "";
 let roomCode = "";

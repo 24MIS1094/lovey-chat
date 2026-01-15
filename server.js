@@ -6,10 +6,7 @@ const { v4: uuid } = require("uuid");
 
 const app = express();
 const server = http.createServer(app);
-
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL,
@@ -20,27 +17,20 @@ io.on("connection", socket => {
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0, 6).toUpperCase();
-    await redis.set(`room:${code}`, JSON.stringify({ users: [] }), { ex: 3600 });
+    await redis.set(`room:${code}`, { users: [] });
     socket.emit("room-created", code);
   });
 
   socket.on("join-room", async ({ code, user }) => {
-    const data = await redis.get(`room:${code}`);
+    const room = await redis.get(`room:${code}`);
 
-    if (!data) {
-      socket.emit("wrong-code");
-      return;
-    }
-
-    const room = JSON.parse(data);
-
-    if (room.users.length >= 2) {
+    if (!room || room.users.length >= 2) {
       socket.emit("wrong-code");
       return;
     }
 
     room.users.push(user);
-    await redis.set(`room:${code}`, JSON.stringify(room), { ex: 3600 });
+    await redis.set(`room:${code}`, room);
 
     socket.join(code);
     socket.room = code;
@@ -58,6 +48,6 @@ io.on("connection", socket => {
 
 });
 
-server.listen(process.env.PORT || 3000, () =>
-  console.log("Server running")
+server.listen(process.env.PORT || 10000, () =>
+  console.log("Redis backend running")
 );

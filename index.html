@@ -1,61 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Lovey Chat</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 
-<!-- USER SELECTION -->
-<div id="login">
-  <h2>Lovey Chat</h2>
-  <button onclick="startUser1()">User 1 (Create Code)</button>
-  <button onclick="startUser2()">User 2 (Enter Code)</button>
+<!-- START SCREEN -->
+<div id="start" class="screen">
+  <h1>Lovey Chat</h1>
+  <button onclick="goAstrae()">Enter as Astrae</button>
+  <button onclick="goCryon()">Enter as Cryon</button>
 </div>
 
-<!-- USER 1 CODE SCREEN -->
-<div id="codeScreen" style="display:none;">
-  <h3>Share this code</h3>
-  <div id="roomCode"></div>
-  <button onclick="enterChat()">Enter Chat</button>
+<!-- ASTRAE PAGE -->
+<div id="astraePage" class="screen hidden">
+  <h2>Astrae</h2>
+  <p>Your Code</p>
+  <div id="astraeCode"></div>
+  <button onclick="enterChat('Astrae')">Enter Chat</button>
 </div>
 
-<!-- USER 2 JOIN SCREEN -->
-<div id="joinScreen" style="display:none;">
-  <h3>Enter Code</h3>
-  <input id="codeInput" placeholder="Enter 6-digit code">
-  <button onclick="verifyCode()">Join Chat</button>
+<!-- CRYON PAGE -->
+<div id="cryonPage" class="screen hidden">
+  <h2>Cryon</h2>
+  <input id="cryonInput" placeholder="Enter Astrae Code">
+  <button onclick="checkCryon()">Enter Chat</button>
+  <p id="error"></p>
 </div>
 
-<!-- CHAT SCREEN -->
-<div id="chat" style="display:none;">
-  <div id="chatHeader">
-    <span>Lovey Chat</span>
-    <button onclick="clearChat()">Delete</button>
-  </div>
-
-  <div id="messages"></div>
-  <div id="typingStatus"></div>
-
-  <!-- EMOJI BAR -->
-  <div id="emojiBar">
-    <span onclick="addEmoji('😀')">😀</span>
-    <span onclick="addEmoji('😂')">😂</span>
-    <span onclick="addEmoji('👍')">👍</span>
-    <span onclick="addEmoji('🔥')">🔥</span>
-  </div>
-
-  <div id="inputArea">
-    <input id="messageInput" placeholder="Type a message..." />
-    <button onclick="sendMessage()">Send</button>
-  </div>
+<!-- CHAT -->
+<div id="chat" class="screen hidden">
+  <h2 id="userTitle"></h2>
+  <p>Chat started</p>
 </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-<script src="script.js"></script>
+<script src="./script.js"></script>
 </body>
 </html>

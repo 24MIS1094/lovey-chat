@@ -17,8 +17,8 @@
   <div id="astrae-page" class="screen hidden">
     <h2>Astrae</h2>
     <div class="code-container">
-      <p>Share this code:</p>
-      <h1 id="generated-code">------</h1>
+      <p>Share this code with Cryon:</p>
+      <div id="code-display">Generating...</div>
     </div>
     <button onclick="joinChat('Astrae')">Enter Chat</button>
   </div>
@@ -33,7 +33,7 @@
   <div id="chat-screen" class="screen hidden">
     <header>
       <span id="display-name"></span>
-      <select onchange="changeTheme(this.value)">
+      <select onchange="document.body.className=this.value">
         <option value="dark-theme">Dark</option>
         <option value="light-theme">Light</option>
         <option value="pink-theme">Lovey</option>
@@ -41,11 +41,11 @@
     </header>
     <div id="messages"></div>
     <div class="input-area">
-      <button onclick="triggerImg()">🖼️</button>
+      <button onclick="document.getElementById('img-input').click()">🖼️</button>
       <input type="file" id="img-input" hidden accept="image/*">
-      <input type="text" id="msg-input" placeholder="Type...">
+      <input type="text" id="msg-input" placeholder="Type message...">
       <button onclick="sendMsg()">➤</button>
-      <button id="voice-btn" onmousedown="startRec()" onmouseup="stopRec()">🎤</button>
+      <button id="voice-btn" onmousedown="startRec()" onmouseup="stopRec()" ontouchstart="startRec()" ontouchend="stopRec()">🎤</button>
     </div>
   </div>
 

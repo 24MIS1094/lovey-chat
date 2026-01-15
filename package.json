@@ -6,9 +6,10 @@
     "start": "node server.js"
   },
   "dependencies": {
+    "@upstash/redis": "^1.36.1",
     "express": "^4.19.2",
+    "node-fetch": "^2.6.12",
     "socket.io": "^4.7.5",
-    "uuid": "^9.0.1",
-    "node-fetch": "^2.6.12"
+    "uuid": "^9.0.1"
   }
 }

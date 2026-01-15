@@ -1,75 +1,98 @@
-const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
-const { v4: uuid } = require("uuid");
+const socket = io("https://lovey-chat.onrender.com");
 
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
+let role = "";
+let code = "";
+let rec, chunks = [];
+
+function astrae() {
+  role = "Astrae";
+  select.style.display = "none";
+  a.style.display = "block";
+}
+
+function cryon() {
+  role = "Cryon";
+  select.style.display = "none";
+  c.style.display = "block";
+}
+
+function create() {
+  socket.emit("create-room");
+}
+
+socket.on("room-created", c => {
+  code = c;
+  document.getElementById("code").innerText = "Code: " + c;
 });
 
-app.use(express.static("public"));
+function enter() {
+  socket.emit("join-room", { code, user: role });
+  show();
+}
 
-const rooms = {}; // code -> { users: [], images: {} }
+function join() {
+  socket.emit("join-room", { code: join.value, user: role });
+}
 
-io.on("connection", socket => {
+socket.on("wrong-code", () => err.innerText = "Invalid Code");
 
-  socket.on("create-room", () => {
-    const code = uuid().slice(0, 6).toUpperCase();
-    rooms[code] = { users: [], images: {} };
-    socket.emit("room-created", code);
-  });
+function show() {
+  a.style.display = c.style.display = "none";
+  chat.style.display = "block";
+}
 
-  socket.on("join-room", ({ code, user }) => {
-    if (!rooms[code] || rooms[code].users.length >= 2) {
-      socket.emit("wrong-code");
-      return;
-    }
+socket.on("system", t => add(t));
+socket.on("message", m => add(`${m.user}: ${m.text}`));
 
-    rooms[code].users.push(user);
-    socket.join(code);
-    socket.room = code;
-    socket.user = user;
+function send() {
+  socket.emit("message", m.value);
+  m.value = "";
+}
 
-    io.to(code).emit("system", `${user} joined`);
-  });
+function add(t) {
+  msgs.innerHTML += `<div>${t}</div>`;
+}
 
-  socket.on("message", text => {
-    if (!socket.room) return;
-    io.to(socket.room).emit("message", {
-      user: socket.user,
-      text
-    });
-  });
+function img(i) {
+  const r = new FileReader();
+  r.onload = () => socket.emit("image", r.result);
+  r.readAsDataURL(i.files[0]);
+}
 
-  socket.on("image", data => {
-    const id = uuid();
-    rooms[socket.room].images[id] = 2;
-    io.to(socket.room).emit("image", { id, data });
-  });
-
-  socket.on("view-image", id => {
-    const r = rooms[socket.room];
-    if (r?.images[id]) {
-      r.images[id]--;
-      if (r.images[id] <= 0) {
-        delete r.images[id];
-        io.to(socket.room).emit("remove-image", id);
-      }
-    }
-  });
-
-  socket.on("voice", audio => {
-    io.to(socket.room).emit("voice", audio);
-  });
-
-  socket.on("clear-chat", () => {
-    io.to(socket.room).emit("clear");
-  });
+socket.on("image", d => {
+  const im = document.createElement("img");
+  im.src = d;
+  im.width = 150;
+  msgs.appendChild(im);
 });
 
-const PORT = process.env.PORT || 10000;
-server.listen(PORT, () =>
-  console.log("Backend running on port", PORT)
-);
+function voice() {
+  navigator.mediaDevices.getUserMedia({ audio: true }).then(s => {
+    rec = new MediaRecorder(s);
+    rec.start();
+    rec.ondataavailable = e => chunks.push(e.data);
+    setTimeout(() => {
+      rec.stop();
+      rec.onstop = () => {
+        const b = new Blob(chunks);
+        const r = new FileReader();
+        r.onload = () => socket.emit("voice", r.result);
+        r.readAsDataURL(b);
+        chunks = [];
+      };
+    }, 3000);
+  });
+}
+
+socket.on("voice", a => {
+  const au = document.createElement("audio");
+  au.src = a;
+  au.controls = true;
+  msgs.appendChild(au);
+});
+
+function clearChat() {
+  socket.emit("clear-chat");
+}
+
+socket.on("clear", () => msgs.innerHTML = "");

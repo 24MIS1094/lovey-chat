@@ -9,31 +9,28 @@
 <h1>Lovey Chat 💜</h1>
 
 <div id="select">
-  <button onclick="asAstrae()">Enter as Astrae ✨</button>
-  <button onclick="asCryon()">Enter as Cryon ❄️</button>
+  <button onclick="astrae()">Astrae ✨</button>
+  <button onclick="cryon()">Cryon ❄️</button>
 </div>
 
-<div id="astrae" class="box">
-  <h2>Astrae</h2>
-  <button onclick="createRoom()">Generate Code</button>
+<div id="a" class="box">
   <p id="code"></p>
-  <button onclick="enterChat()">Enter Chat</button>
+  <button onclick="create()">Generate Code</button>
+  <button onclick="enter()">Enter Chat</button>
 </div>
 
-<div id="cryon" class="box">
-  <h2>Cryon</h2>
-  <input id="joinCode" placeholder="Enter Astrae Code">
-  <button onclick="joinRoom()">Enter Chat</button>
-  <p id="error"></p>
+<div id="c" class="box">
+  <input id="join" placeholder="Enter Code">
+  <button onclick="join()">Enter Chat</button>
+  <p id="err"></p>
 </div>
 
 <div id="chat">
-  <div id="messages"></div>
-
-  <input id="msg" placeholder="Type message 💬">
+  <div id="msgs"></div>
+  <input id="m" placeholder="Message">
   <button onclick="send()">Send</button>
-  <input type="file" id="img" onchange="sendImage()">
-  <button onclick="record()">🎙️</button>
+  <input type="file" onchange="img(this)">
+  <button onclick="voice()">🎙️</button>
   <button onclick="clearChat()">🗑️</button>
 </div>
 

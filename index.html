@@ -1,49 +1,44 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8">
   <title>Lovey Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="app">
-
-  <div id="home">
-    <h1 class="brand">LOVEY</h1>
-    <p class="tag">Private realtime chat</p>
-    <button id="astraeBtn">ASTRAE</button>
-    <button id="cryonBtn">CRYON</button>
-  </div>
-
-  <div id="astrae" class="hidden">
-    <h2>Your Code</h2>
-    <div id="roomCode" class="code"></div>
-    <button id="enterAstrae">Enter Chat</button>
-  </div>
-
-  <div id="cryon" class="hidden">
-    <input id="codeInput" placeholder="Enter code">
-    <button id="enterCryon">Enter Chat</button>
-    <p id="error"></p>
-  </div>
-
-  <div id="chat" class="hidden">
-    <div id="messages"></div>
-
-    <div class="inputBar">
-      <input id="text" placeholder="Message">
-      <input type="file" id="image" hidden>
-      <button id="emoji">😊</button>
-      <button id="imgBtn">📷</button>
-      <button id="voice">🎤</button>
-      <button id="send">➤</button>
-    </div>
-  </div>
-
+<div id="start">
+  <h1 class="glow">LOVEY</h1>
+  <button onclick="openAstrae()">ASTRAE</button>
+  <button onclick="openCryon()">CRYON</button>
 </div>
 
-<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<div id="join" hidden>
+  <h2 id="codeDisplay"></h2>
+  <input id="codeInput" placeholder="Enter Code">
+  <button onclick="enterChat()">Enter Chat</button>
+</div>
+
+<div id="chat" hidden>
+  <div id="top">
+    <span id="typing"></span>
+    <button onclick="clearChat()">🗑</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="emojiBox">
+    😀 😍 😂 🥺 😘 😎 😭 ❤️ 🔥 👍 🎉
+  </div>
+
+  <div id="inputBar">
+    <input id="msg" placeholder="Type..." onkeydown="typing(event)">
+    <button onclick="sendMsg()">➤</button>
+    <input type="file" id="img" onchange="sendImage()">
+    <button onclick="recordVoice()">🎤</button>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="script.js"></script>
 </body>
 </html>

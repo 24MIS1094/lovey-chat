@@ -7,43 +7,42 @@ const { v4: uuid } = require("uuid");
 const app = express();
 const server = http.createServer(app);
 
-/* SOCKET.IO WITH CORS */
 const io = new Server(server, {
   cors: {
     origin: "https://lovey-chat.vercel.app",
     methods: ["GET", "POST"]
-  }
+  },
+  transports: ["websocket", "polling"]
 });
 
-/* REDIS */
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL.trim(),
   token: process.env.UPSTASH_REDIS_REST_TOKEN.trim()
 });
 
 io.on("connection", (socket) => {
+  console.log("connected");
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0, 6).toUpperCase();
-    await redis.set(`room:${code}`, JSON.stringify({ users: [] }));
+
+    // ⛔ NO JSON.stringify
+    await redis.set(`room:${code}`, { users: [] });
+
     socket.emit("room-created", code);
   });
 
   socket.on("join-room", async ({ code, user }) => {
-    const data = await redis.get(`room:${code}`);
-    if (!data) {
-      socket.emit("wrong-code");
-      return;
-    }
+    // ⛔ NO JSON.parse
+    const room = await redis.get(`room:${code}`);
 
-    const room = JSON.parse(data);
-    if (room.users.length >= 2) {
+    if (!room || room.users.length >= 2) {
       socket.emit("wrong-code");
       return;
     }
 
     room.users.push(user);
-    await redis.set(`room:${code}`, JSON.stringify(room));
+    await redis.set(`room:${code}`, room);
 
     socket.join(code);
     socket.room = code;
@@ -52,15 +51,16 @@ io.on("connection", (socket) => {
     io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", (msg) => {
+  socket.on("message", (text) => {
     if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
-      text: msg
+      text
     });
   });
 });
 
-server.listen(process.env.PORT || 10000, () => {
+const PORT = process.env.PORT || 10000;
+server.listen(PORT, () => {
   console.log("Lovey Chat backend running");
 });

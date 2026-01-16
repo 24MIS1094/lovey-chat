@@ -2,6 +2,7 @@ const socket = io("https://lovey-chat.onrender.com", {
   transports: ["websocket", "polling"]
 });
 
+
 let role = "";
 let roomCode = "";
 

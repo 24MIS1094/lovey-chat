@@ -1,18 +1,23 @@
 const express = require("express");
 const http = require("http");
+const cors = require("cors");
 const { Server } = require("socket.io");
 const { Redis } = require("@upstash/redis");
 const { v4: uuid } = require("uuid");
 
 const app = express();
+
+/* 🔥 EXPRESS CORS — THIS WAS MISSING */
+app.use(cors({ origin: "*" }));
+
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "*",              // 🔥 FIX
+    origin: "*",
     methods: ["GET", "POST"]
   },
-  transports: ["polling"]     // keep polling (Render free safe)
+  transports: ["polling"]   // Render free safe
 });
 
 const redis = new Redis({
@@ -24,16 +29,18 @@ io.on("connection", (socket) => {
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0, 6).toUpperCase();
-    await redis.set(`room:${code}`, { users: [], images: {} });
+    await redis.set(`room:${code}`, { users: [] });
     socket.emit("room-created", code);
   });
 
   socket.on("join-room", async ({ code, user }) => {
     const room = await redis.get(`room:${code}`);
+
     if (!room || room.users.length >= 2) {
       socket.emit("wrong-code");
       return;
     }
+
     room.users.push(user);
     await redis.set(`room:${code}`, room);
 
@@ -41,27 +48,15 @@ io.on("connection", (socket) => {
     socket.room = code;
     socket.user = user;
 
+    socket.emit("joined");
     io.to(code).emit("system", `${user} joined`);
   });
 
   socket.on("message", (text) => {
-    if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
       text
     });
-  });
-
-  socket.on("image", ({ id, data }) => {
-    io.to(socket.room).emit("image", { id, data });
-  });
-
-  socket.on("voice", (audio) => {
-    io.to(socket.room).emit("voice", audio);
-  });
-
-  socket.on("clear-chat", () => {
-    io.to(socket.room).emit("clear");
   });
 });
 

@@ -1,6 +1,6 @@
-console.log("script.js loaded"); // 🔥 DEBUG
-
-const socket = io("https://lovey-chat.onrender.com");
+const socket = io("https://lovey-chat.onrender.com", {
+  transports: ["websocket", "polling"]
+});
 
 let role = "";
 let roomCode = "";
@@ -10,53 +10,49 @@ const astrae = document.getElementById("astrae");
 const cryon = document.getElementById("cryon");
 const chat = document.getElementById("chat");
 
-document.getElementById("astraeBtn").addEventListener("click", () => {
-  console.log("Astrae clicked");
+document.getElementById("astraeBtn").onclick = () => {
   role = "Astrae";
   select.style.display = "none";
   astrae.style.display = "block";
-});
+};
 
-document.getElementById("cryonBtn").addEventListener("click", () => {
-  console.log("Cryon clicked");
+document.getElementById("cryonBtn").onclick = () => {
   role = "Cryon";
   select.style.display = "none";
   cryon.style.display = "block";
-});
+};
 
-document.getElementById("genBtn").addEventListener("click", () => {
-  console.log("Generate room");
+document.getElementById("genBtn").onclick = () => {
   socket.emit("create-room");
-});
+};
 
-socket.on("room-created", code => {
-  console.log("Room created:", code);
+socket.on("room-created", (code) => {
   roomCode = code;
   document.getElementById("code").innerText = code;
 });
 
-document.getElementById("enterAstrae").addEventListener("click", () => {
+document.getElementById("enterAstrae").onclick = () => {
   socket.emit("join-room", { code: roomCode, user: role });
   astrae.style.display = "none";
   chat.style.display = "block";
-});
+};
 
-document.getElementById("enterCryon").addEventListener("click", () => {
+document.getElementById("enterCryon").onclick = () => {
   const code = document.getElementById("joinCode").value.trim().toUpperCase();
   socket.emit("join-room", { code, user: role });
-});
+};
 
 socket.on("wrong-code", () => {
   alert("Wrong Code");
 });
 
-socket.on("system", msg => add(msg));
-socket.on("message", m => add(`${m.user}: ${m.text}`));
+socket.on("system", (msg) => add(msg));
+socket.on("message", (m) => add(`${m.user}: ${m.text}`));
 
-document.getElementById("sendBtn").addEventListener("click", () => {
+document.getElementById("sendBtn").onclick = () => {
   socket.emit("message", document.getElementById("msg").value);
   document.getElementById("msg").value = "";
-});
+};
 
 function add(text) {
   chat.style.display = "block";

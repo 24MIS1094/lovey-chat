@@ -3,37 +3,25 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { Redis } = require("@upstash/redis");
 const { v4: uuid } = require("uuid");
-const path = require("path");
 
 const app = express();
 const server = http.createServer(app);
 
+/* SOCKET.IO WITH CORS */
 const io = new Server(server, {
-  cors: { origin: "*" }
+  cors: {
+    origin: "https://lovey-chat.vercel.app",
+    methods: ["GET", "POST"]
+  }
 });
 
-// ✅ serve public files
-app.use(express.static(path.join(__dirname, "public")));
-
-// ✅ serve socket.io client
-app.get("/socket.io/socket.io.js", (req, res) => {
-  res.sendFile(
-    path.join(
-      __dirname,
-      "node_modules",
-      "socket.io",
-      "client-dist",
-      "socket.io.js"
-    )
-  );
-});
-
+/* REDIS */
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL.trim(),
   token: process.env.UPSTASH_REDIS_REST_TOKEN.trim()
 });
 
-io.on("connection", socket => {
+io.on("connection", (socket) => {
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0, 6).toUpperCase();
@@ -64,7 +52,8 @@ io.on("connection", socket => {
     io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", msg => {
+  socket.on("message", (msg) => {
+    if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
       text: msg
@@ -72,6 +61,6 @@ io.on("connection", socket => {
   });
 });
 
-server.listen(process.env.PORT || 10000, () =>
-  console.log("Lovey Chat backend running")
-);
+server.listen(process.env.PORT || 10000, () => {
+  console.log("Lovey Chat backend running");
+});

@@ -21,6 +21,7 @@ const redis = new Redis({
 });
 
 io.on("connection", (socket) => {
+  socket.emit("connected");
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0,6).toUpperCase();

@@ -1,6 +1,18 @@
-const socket = io("https://lovey-chat.onrender.com", {
-  transports: ["polling"]
+socket.on("connected", () => {
+  console.log("SOCKET CONNECTED");
 });
+socket.on("joined", () => {
+  console.log("JOINED EVENT RECEIVED");
+});
+
+const socket = io("https://lovey-chat.onrender.com", {
+  transports: ["polling"],
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  timeout: 20000
+});
+
 
 let roomCode = "";
 let role = "";

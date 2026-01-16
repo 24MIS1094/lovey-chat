@@ -3,14 +3,17 @@ const socket = io("https://lovey-chat.onrender.com", {
 });
 
 let roomCode = "";
+let role = "";
 
 function openAstrae() {
+  role = "Astrae";
   home.classList.add("hidden");
   astrae.classList.remove("hidden");
   socket.emit("create-room");
 }
 
 function openCryon() {
+  role = "Cryon";
   home.classList.add("hidden");
   cryon.classList.remove("hidden");
 }
@@ -25,7 +28,7 @@ function enterAsAstrae() {
 }
 
 function enterAsCryon() {
-  socket.emit("join-room", { code: joinCode.value, user: "Cryon" });
+  socket.emit("join-room", { code: joinCode.value.trim(), user: "Cryon" });
 }
 
 socket.on("joined", () => {
@@ -35,18 +38,19 @@ socket.on("joined", () => {
 });
 
 socket.on("wrong-code", () => {
-  error.innerText = "Invalid Code";
+  error.innerText = "Invalid or expired code";
 });
 
-socket.on("message", m => add(m.user + ": " + m.text));
-socket.on("system", t => add(t, "sys"));
+socket.on("system", t => addMsg(t, "sys"));
+socket.on("message", m => addMsg(`${m.user}: ${m.text}`));
 
 function send() {
+  if (!msg.value.trim()) return;
   socket.emit("message", msg.value);
   msg.value = "";
 }
 
-function add(t, c="") {
+function addMsg(t, c="") {
   const d = document.createElement("div");
   d.className = c;
   d.innerText = t;

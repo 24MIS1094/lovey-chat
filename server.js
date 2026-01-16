@@ -6,18 +6,13 @@ const { Redis } = require("@upstash/redis");
 const { v4: uuid } = require("uuid");
 
 const app = express();
-
-/* 🔥 EXPRESS CORS — THIS WAS MISSING */
 app.use(cors({ origin: "*" }));
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  },
-  transports: ["polling"]   // Render free safe
+  cors: { origin: "*", methods: ["GET","POST"] },
+  transports: ["polling"]
 });
 
 const redis = new Redis({
@@ -28,7 +23,7 @@ const redis = new Redis({
 io.on("connection", (socket) => {
 
   socket.on("create-room", async () => {
-    const code = uuid().slice(0, 6).toUpperCase();
+    const code = uuid().slice(0,6).toUpperCase();
     await redis.set(`room:${code}`, { users: [] });
     socket.emit("room-created", code);
   });
@@ -36,23 +31,30 @@ io.on("connection", (socket) => {
   socket.on("join-room", async ({ code, user }) => {
     const room = await redis.get(`room:${code}`);
 
-    if (!room || room.users.length >= 2) {
+    if (!room) {
       socket.emit("wrong-code");
       return;
     }
 
-    room.users.push(user);
-    await redis.set(`room:${code}`, room);
+    if (!room.users.includes(user)) {
+      if (room.users.length >= 2) {
+        socket.emit("wrong-code");
+        return;
+      }
+      room.users.push(user);
+      await redis.set(`room:${code}`, room);
+    }
 
     socket.join(code);
     socket.room = code;
     socket.user = user;
 
-    socket.emit("joined");
-    io.to(code).emit("system", `${user} joined`);
+    socket.emit("joined");              // 🔥 ONLY trigger UI now
+    socket.to(code).emit("system", `${user} joined`);
   });
 
   socket.on("message", (text) => {
+    if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
       text

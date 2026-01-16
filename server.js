@@ -14,6 +14,8 @@ const io = new Server(server, {
   }
 });
 
+app.use(express.static("public"));
+
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL.trim(),
   token: process.env.UPSTASH_REDIS_REST_TOKEN.trim()
@@ -28,10 +30,10 @@ io.on("connection", socket => {
   });
 
   socket.on("join-room", async ({ code, user }) => {
-    const data = await redis.get(`room:${code}`);
-    if (!data) return socket.emit("wrong-code");
+    const raw = await redis.get(`room:${code}`);
+    if (!raw) return socket.emit("wrong-code");
 
-    const room = JSON.parse(data);
+    const room = JSON.parse(raw);
     if (room.users.length >= 2) return socket.emit("wrong-code");
 
     room.users.push(user);
@@ -41,8 +43,8 @@ io.on("connection", socket => {
     socket.room = code;
     socket.user = user;
 
-    io.to(code).emit("system", `${user} joined`);
     socket.emit("joined");
+    socket.to(code).emit("system", `${user} joined`);
   });
 
   socket.on("typing", () => {
@@ -53,10 +55,10 @@ io.on("connection", socket => {
     socket.to(socket.room).emit("stop-typing");
   });
 
-  socket.on("message", msg => {
+  socket.on("message", text => {
     io.to(socket.room).emit("message", {
       user: socket.user,
-      text: msg
+      text
     });
   });
 

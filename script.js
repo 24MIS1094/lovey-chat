@@ -3,10 +3,18 @@ const socket = io("https://lovey-chat.onrender.com", {
 });
 
 let role = "";
-let mediaRecorder;
-let audioChunks = [];
+let recorder, chunks = [];
 
-/* -------- ENTRY -------- */
+window.onload = () => {
+  astraeBtn.onclick = openAstrae;
+  cryonBtn.onclick = openCryon;
+  enterBtn.onclick = enterChat;
+  sendBtn.onclick = sendMsg;
+  imgBtn.onclick = () => imgInput.click();
+  imgInput.onchange = sendImage;
+  voiceBtn.onclick = recordVoice;
+};
+
 function openAstrae() {
   role = "Astrae";
   socket.emit("create-room");
@@ -34,52 +42,51 @@ socket.on("joined", () => {
   chat.hidden = false;
 });
 
-/* -------- TEXT -------- */
+socket.on("wrong-code", () => {
+  error.innerText = "Wrong Code";
+});
+
+msg.onkeydown = e => {
+  if (e.key === "Enter") sendMsg();
+  socket.emit("typing");
+  setTimeout(() => socket.emit("stop-typing"), 500);
+};
+
+socket.on("typing", u => typing.innerText = `${u} typing...`);
+socket.on("stop-typing", () => typing.innerText = "");
+
+socket.on("message", m => addMsg(m.text, m.user === role));
+socket.on("image", i => addImg(i.data, i.user === role));
+socket.on("voice", v => addVoice(v.audio, v.user === role));
+socket.on("clear", () => messages.innerHTML = "");
+
 function sendMsg() {
   if (!msg.value.trim()) return;
   socket.emit("message", msg.value);
   msg.value = "";
 }
 
-msg.addEventListener("keydown", e => {
-  if (e.key === "Enter") sendMsg();
-  socket.emit("typing");
-  setTimeout(() => socket.emit("stop-typing"), 500);
-});
-
-/* -------- IMAGE -------- */
 function sendImage() {
-  const file = img.files[0];
-  if (!file) return;
-
+  const file = imgInput.files[0];
   const reader = new FileReader();
   reader.onload = () => socket.emit("image", reader.result);
   reader.readAsDataURL(file);
 }
 
-/* -------- VOICE -------- */
 async function recordVoice() {
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  mediaRecorder = new MediaRecorder(stream);
-  audioChunks = [];
-
-  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-  mediaRecorder.onstop = () => {
-    const blob = new Blob(audioChunks, { type: "audio/webm" });
+  recorder = new MediaRecorder(stream);
+  chunks = [];
+  recorder.ondataavailable = e => chunks.push(e.data);
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: "audio/webm" });
     const reader = new FileReader();
     reader.onload = () => socket.emit("voice", reader.result);
     reader.readAsDataURL(blob);
   };
-
-  mediaRecorder.start();
-  setTimeout(() => mediaRecorder.stop(), 3000);
+  recorder.start();
+  setTimeout(() => recorder.stop(), 3000);
 }
-
-/* -------- RENDER -------- */
-socket.on("message", m => addMsg(m.text, m.user === role));
-socket.on("image", i => addImg(i.data, i.user === role));
-socket.on("voice", v => addVoice(v.audio, v.user === role));
-socket.on("clear", () => messages.innerHTML = "");
 
 function addMsg(text, me) {
   const d = document.createElement("div");

@@ -1,6 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Lovey Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -8,14 +9,15 @@
 
 <div id="start">
   <h1 class="glow">LOVEY</h1>
-  <button onclick="openAstrae()">ASTRAE</button>
-  <button onclick="openCryon()">CRYON</button>
+  <button id="astraeBtn">ASTRAE</button>
+  <button id="cryonBtn">CRYON</button>
 </div>
 
 <div id="join" hidden>
   <h2 id="codeDisplay"></h2>
   <input id="codeInput" placeholder="Enter Code">
-  <button onclick="enterChat()">Enter Chat</button>
+  <button id="enterBtn">Enter Chat</button>
+  <p id="error"></p>
 </div>
 
 <div id="chat" hidden>
@@ -31,14 +33,15 @@
   </div>
 
   <div id="inputBar">
-    <input id="msg" placeholder="Type..." onkeydown="typing(event)">
-    <button onclick="sendMsg()">➤</button>
-    <input type="file" id="img" onchange="sendImage()">
-    <button onclick="recordVoice()">🎤</button>
+    <input id="msg" placeholder="Type a message">
+    <button id="sendBtn">➤</button>
+    <input type="file" id="imgInput" hidden>
+    <button id="imgBtn">📷</button>
+    <button id="voiceBtn">🎤</button>
   </div>
 </div>
 
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script src="script.js"></script>
+<script src="script.js" defer></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Lovey Chat</title>
@@ -9,30 +9,36 @@
 
 <h1 class="logo">LOVEY CHAT</h1>
 
+<!-- HOME -->
 <div id="home">
-  <button onclick="openAstrae()">ASTRAE</button>
-  <button onclick="openCryon()">CRYON</button>
+  <button id="btnAstrae">ASTRAE</button>
+  <button id="btnCryon">CRYON</button>
 </div>
 
+<!-- ASTRAE -->
 <div id="astrae" class="hidden">
-  <p>Your private code</p>
+  <p>Your code</p>
   <div id="codeBox"></div>
-  <button onclick="enterAsAstrae()">ENTER CHAT</button>
+  <button id="btnAstraeEnter">ENTER CHAT</button>
 </div>
 
+<!-- CRYON -->
 <div id="cryon" class="hidden">
   <input id="joinCode" placeholder="Enter code">
-  <button onclick="enterAsCryon()">ENTER CHAT</button>
+  <button id="btnCryonEnter">ENTER CHAT</button>
   <p id="error"></p>
 </div>
 
+<!-- CHAT -->
 <div id="chat" class="hidden">
   <div id="messages"></div>
   <input id="msg" placeholder="Type message">
-  <button onclick="send()">Send</button>
+  <button id="sendBtn">Send</button>
 </div>
 
+<!-- SCRIPTS (ORDER MATTERS) -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="script.js"></script>
+
 </body>
 </html>

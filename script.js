@@ -1,76 +1,76 @@
-/* ===== GLOBAL STATE (MUST BE FIRST) ===== */
-let socket = null;
+// ===== GLOBAL STATE =====
+let socket;
 let roomCode = "";
-let role = "";
 
-/* ===== SOCKET INIT ===== */
-socket = io("https://lovey-chat.onrender.com", {
-  transports: ["polling"],
-  reconnection: true,
-  reconnectionAttempts: Infinity,
-  reconnectionDelay: 1000,
-  timeout: 20000
-});
+// ===== DOM READY =====
+window.onload = () => {
 
-/* ===== SOCKET EVENTS ===== */
-socket.on("connected", () => {
-  console.log("SOCKET CONNECTED");
-});
+  // CONNECT SOCKET
+  socket = io("https://lovey-chat.onrender.com", {
+    transports: ["polling"],
+    reconnection: true
+  });
 
-socket.on("room-created", (code) => {
-  roomCode = code;
-  document.getElementById("codeBox").innerText = code;
-});
+  // ELEMENTS
+  const home = document.getElementById("home");
+  const astrae = document.getElementById("astrae");
+  const cryon = document.getElementById("cryon");
+  const chat = document.getElementById("chat");
+  const codeBox = document.getElementById("codeBox");
+  const error = document.getElementById("error");
+  const messages = document.getElementById("messages");
+  const msg = document.getElementById("msg");
 
-socket.on("joined", () => {
-  document.getElementById("astrae").classList.add("hidden");
-  document.getElementById("cryon").classList.add("hidden");
-  document.getElementById("chat").classList.remove("hidden");
-});
+  // BUTTONS
+  document.getElementById("btnAstrae").onclick = () => {
+    home.classList.add("hidden");
+    astrae.classList.remove("hidden");
+    socket.emit("create-room");
+  };
 
-socket.on("wrong-code", () => {
-  document.getElementById("error").innerText = "Invalid code";
-});
+  document.getElementById("btnCryon").onclick = () => {
+    home.classList.add("hidden");
+    cryon.classList.remove("hidden");
+  };
 
-socket.on("system", (msg) => addMessage(msg, "sys"));
-socket.on("message", (msg) =>
-  addMessage(`${msg.user}: ${msg.text}`)
-);
+  document.getElementById("btnAstraeEnter").onclick = () => {
+    socket.emit("join-room", { code: roomCode, user: "Astrae" });
+  };
 
-/* ===== UI ACTIONS ===== */
-function openAstrae() {
-  role = "Astrae";
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("astrae").classList.remove("hidden");
-  socket.emit("create-room");
-}
+  document.getElementById("btnCryonEnter").onclick = () => {
+    const code = document.getElementById("joinCode").value.trim();
+    socket.emit("join-room", { code, user: "Cryon" });
+  };
 
-function openCryon() {
-  role = "Cryon";
-  document.getElementById("home").classList.add("hidden");
-  document.getElementById("cryon").classList.remove("hidden");
-}
+  document.getElementById("sendBtn").onclick = () => {
+    if (!msg.value.trim()) return;
+    socket.emit("message", msg.value);
+    msg.value = "";
+  };
 
-function enterAsAstrae() {
-  socket.emit("join-room", { code: roomCode, user: "Astrae" });
-}
+  // SOCKET EVENTS
+  socket.on("room-created", (code) => {
+    roomCode = code;
+    codeBox.innerText = code;
+  });
 
-function enterAsCryon() {
-  const code = document.getElementById("joinCode").value.trim();
-  socket.emit("join-room", { code, user: "Cryon" });
-}
+  socket.on("joined", () => {
+    astrae.classList.add("hidden");
+    cryon.classList.add("hidden");
+    chat.classList.remove("hidden");
+  });
 
-function send() {
-  const input = document.getElementById("msg");
-  if (!input.value.trim()) return;
-  socket.emit("message", input.value);
-  input.value = "";
-}
+  socket.on("wrong-code", () => {
+    error.innerText = "WRONG CODE";
+  });
 
-/* ===== HELPERS ===== */
-function addMessage(text, cls = "") {
-  const d = document.createElement("div");
-  d.className = cls;
-  d.innerText = text;
-  document.getElementById("messages").appendChild(d);
-}
+  socket.on("system", (text) => add(text, "sys"));
+  socket.on("message", (m) => add(`${m.user}: ${m.text}`));
+
+  function add(text, cls = "") {
+    const d = document.createElement("div");
+    d.className = cls;
+    d.innerText = text;
+    messages.appendChild(d);
+  }
+};

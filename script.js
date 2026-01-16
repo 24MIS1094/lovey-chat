@@ -1,5 +1,5 @@
 const socket = io("https://lovey-chat.onrender.com", {
-  transports: ["websocket", "polling"]
+  transports: ["polling"]   // 🔥 MUST MATCH BACKEND
 });
 
 

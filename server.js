@@ -12,7 +12,7 @@ const io = new Server(server, {
     origin: "https://lovey-chat.vercel.app",
     methods: ["GET", "POST"]
   },
-  transports: ["websocket", "polling"]
+  transports: ["polling"]   // 🔥 IMPORTANT: NO websocket
 });
 
 const redis = new Redis({
@@ -25,15 +25,11 @@ io.on("connection", (socket) => {
 
   socket.on("create-room", async () => {
     const code = uuid().slice(0, 6).toUpperCase();
-
-    // ⛔ NO JSON.stringify
     await redis.set(`room:${code}`, { users: [] });
-
     socket.emit("room-created", code);
   });
 
   socket.on("join-room", async ({ code, user }) => {
-    // ⛔ NO JSON.parse
     const room = await redis.get(`room:${code}`);
 
     if (!room || room.users.length >= 2) {
@@ -60,7 +56,6 @@ io.on("connection", (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 10000;
-server.listen(PORT, () => {
-  console.log("Lovey Chat backend running");
-});
+server.listen(process.env.PORT || 10000, () =>
+  console.log("Lovey Chat backend running")
+);

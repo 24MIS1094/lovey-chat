@@ -1,61 +1,101 @@
 const socket = io("https://lovey-chat.onrender.com", {
-  transports: ["polling"]   // 🔥 MUST MATCH BACKEND
+  transports: ["polling"]
 });
-
 
 let role = "";
 let roomCode = "";
 
-const select = document.getElementById("select");
-const astrae = document.getElementById("astrae");
-const cryon = document.getElementById("cryon");
-const chat = document.getElementById("chat");
-
-document.getElementById("astraeBtn").onclick = () => {
+function asAstrae(){
   role = "Astrae";
-  select.style.display = "none";
-  astrae.style.display = "block";
-};
-
-document.getElementById("cryonBtn").onclick = () => {
-  role = "Cryon";
-  select.style.display = "none";
-  cryon.style.display = "block";
-};
-
-document.getElementById("genBtn").onclick = () => {
+  home.style.display="none";
+  astrae.classList.remove("hidden");
   socket.emit("create-room");
-};
+}
 
-socket.on("room-created", (code) => {
+socket.on("room-created", code=>{
   roomCode = code;
-  document.getElementById("code").innerText = code;
+  codeBox.innerText = code;
 });
 
-document.getElementById("enterAstrae").onclick = () => {
-  socket.emit("join-room", { code: roomCode, user: role });
-  astrae.style.display = "none";
-  chat.style.display = "block";
-};
+function enterChat(){
+  socket.emit("join-room",{code:roomCode,user:"Astrae"});
+  astrae.classList.add("hidden");
+  chat.classList.remove("hidden");
+}
 
-document.getElementById("enterCryon").onclick = () => {
-  const code = document.getElementById("joinCode").value.trim().toUpperCase();
-  socket.emit("join-room", { code, user: role });
-};
+function asCryon(){
+  role = "Cryon";
+  home.style.display="none";
+  cryon.classList.remove("hidden");
+}
 
-socket.on("wrong-code", () => {
-  alert("Wrong Code");
+function joinChat(){
+  socket.emit("join-room",{code:joinCode.value,user:"Cryon"});
+}
+
+socket.on("wrong-code",()=>{
+  error.innerText="Wrong Code";
 });
 
-socket.on("system", (msg) => add(msg));
-socket.on("message", (m) => add(`${m.user}: ${m.text}`));
+socket.on("system",t=>addMsg(t,"sys"));
+socket.on("message",m=>addMsg(`${m.user}: ${m.text}`));
+socket.on("image",img=>{
+  const i=document.createElement("img");
+  i.src=img.data;
+  i.onclick=()=>socket.emit("view-image",img.id);
+  messages.appendChild(i);
+});
+socket.on("remove-image",id=>{
+  document.querySelectorAll("img").forEach(i=>{
+    if(i.onclick) i.remove();
+  });
+});
+socket.on("voice",a=>{
+  const au=document.createElement("audio");
+  au.src=a;au.controls=true;
+  messages.appendChild(au);
+});
+socket.on("clear",()=>messages.innerHTML="");
 
-document.getElementById("sendBtn").onclick = () => {
-  socket.emit("message", document.getElementById("msg").value);
-  document.getElementById("msg").value = "";
-};
+function send(){
+  socket.emit("message",msg.value);
+  msg.value="";
+}
 
-function add(text) {
-  chat.style.display = "block";
-  document.getElementById("messages").innerHTML += `<div>${text}</div>`;
+function sendImage(){
+  const f=document.createElement("input");
+  f.type="file";
+  f.onchange=()=>{
+    const r=new FileReader();
+    r.onload=()=>socket.emit("image",{id:Date.now(),data:r.result});
+    r.readAsDataURL(f.files[0]);
+  };
+  f.click();
+}
+
+let rec;
+function recordVoice(){
+  navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+    rec=new MediaRecorder(s);
+    rec.start();
+    rec.ondataavailable=e=>{
+      const r=new FileReader();
+      r.onload=()=>socket.emit("voice",r.result);
+      r.readAsDataURL(e.data);
+    };
+    setTimeout(()=>rec.stop(),3000);
+  });
+}
+
+function clearChat(){socket.emit("clear-chat");}
+
+function addMsg(t,c=""){
+  const d=document.createElement("div");
+  d.className=c;
+  d.innerText=t;
+  messages.appendChild(d);
+}
+
+function setTheme(t){
+  document.body.className=t;
 }

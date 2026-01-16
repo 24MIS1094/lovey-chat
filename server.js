@@ -12,7 +12,7 @@ const io = new Server(server, {
     origin: "https://lovey-chat.vercel.app",
     methods: ["GET", "POST"]
   },
-  transports: ["polling"]   // 🔥 IMPORTANT: NO websocket
+  transports: ["polling"]
 });
 
 const redis = new Redis({
@@ -21,38 +21,63 @@ const redis = new Redis({
 });
 
 io.on("connection", (socket) => {
-  console.log("connected");
 
   socket.on("create-room", async () => {
-    const code = uuid().slice(0, 6).toUpperCase();
-    await redis.set(`room:${code}`, { users: [] });
+    const code = uuid().slice(0,6).toUpperCase();
+    await redis.set(`room:${code}`, {
+      users: [],
+      images: {},
+      messages: []
+    });
     socket.emit("room-created", code);
   });
 
   socket.on("join-room", async ({ code, user }) => {
     const room = await redis.get(`room:${code}`);
-
     if (!room || room.users.length >= 2) {
       socket.emit("wrong-code");
       return;
     }
-
     room.users.push(user);
     await redis.set(`room:${code}`, room);
-
     socket.join(code);
     socket.room = code;
     socket.user = user;
-
     io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", (text) => {
+  socket.on("message", async (text) => {
     if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
       text
     });
+  });
+
+  socket.on("image", async ({ id, data }) => {
+    const room = await redis.get(`room:${socket.room}`);
+    room.images[id] = 2;
+    await redis.set(`room:${socket.room}`, room);
+    io.to(socket.room).emit("image", { id, data });
+  });
+
+  socket.on("view-image", async (id) => {
+    const room = await redis.get(`room:${socket.room}`);
+    if (!room.images[id]) return;
+    room.images[id]--;
+    if (room.images[id] <= 0) {
+      delete room.images[id];
+      io.to(socket.room).emit("remove-image", id);
+    }
+    await redis.set(`room:${socket.room}`, room);
+  });
+
+  socket.on("voice", (audio) => {
+    io.to(socket.room).emit("voice", audio);
+  });
+
+  socket.on("clear-chat", () => {
+    io.to(socket.room).emit("clear");
   });
 });
 

@@ -1,36 +1,49 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8" />
   <title>Lovey Chat</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="select">
-  <button id="astraeBtn">Astrae ✨</button>
-  <button id="cryonBtn">Cryon ❄️</button>
+<div id="home">
+  <button onclick="asAstrae()">ASTRAE</button>
+  <button onclick="asCryon()">CRYON</button>
 </div>
 
 <div id="astrae" class="hidden">
-  <button id="genBtn">Generate Code</button>
-  <h2 id="code"></h2>
-  <button id="enterAstrae">Enter Chat</button>
+  <h2>Your Code</h2>
+  <div id="codeBox"></div>
+  <button onclick="enterChat()">Enter Chat</button>
 </div>
 
 <div id="cryon" class="hidden">
   <input id="joinCode" placeholder="Enter Code">
-  <button id="enterCryon">Enter Chat</button>
+  <button onclick="joinChat()">Join Chat</button>
+  <p id="error"></p>
 </div>
 
 <div id="chat" class="hidden">
+  <select id="themeSelect" onchange="setTheme(this.value)">
+    <option>dark-neon</option>
+    <option>aurora-glass</option>
+    <option>cosmic-violet</option>
+    <option>cyber-rose</option>
+    <option>obsidian-blue</option>
+    <option>nova-mint</option>
+  </select>
+
   <div id="messages"></div>
+
   <input id="msg">
-  <button id="sendBtn">Send</button>
+  <button onclick="send()">Send</button>
+  <button onclick="sendImage()">📷</button>
+  <button onclick="recordVoice()">🎤</button>
+  <button onclick="clearChat()">🗑️</button>
 </div>
 
-<!-- SOCKET.IO CDN -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-<script src="/script.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>

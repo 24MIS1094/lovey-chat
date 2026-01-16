@@ -1,8 +1,12 @@
-const socket = io("https://lovey-chat.onrender.com");
+const socket = io("https://lovey-chat.onrender.com", {
+  transports: ["websocket"]
+});
 
 let role = "";
-let recorder, chunks = [];
+let mediaRecorder;
+let audioChunks = [];
 
+/* -------- ENTRY -------- */
 function openAstrae() {
   role = "Astrae";
   socket.emit("create-room");
@@ -10,75 +14,77 @@ function openAstrae() {
 
 function openCryon() {
   role = "Cryon";
-  document.getElementById("start").hidden = true;
-  document.getElementById("join").hidden = false;
+  start.hidden = true;
+  join.hidden = false;
 }
 
 socket.on("room-created", code => {
-  document.getElementById("start").hidden = true;
-  document.getElementById("join").hidden = false;
-  document.getElementById("codeDisplay").innerText = code;
+  start.hidden = true;
+  join.hidden = false;
+  codeDisplay.innerText = code;
 });
 
 function enterChat() {
-  const code = document.getElementById("codeInput").value ||
-               document.getElementById("codeDisplay").innerText;
+  const code = codeInput.value || codeDisplay.innerText;
   socket.emit("join-room", { code, user: role });
 }
 
 socket.on("joined", () => {
-  document.getElementById("join").hidden = true;
-  document.getElementById("chat").hidden = false;
+  join.hidden = true;
+  chat.hidden = false;
 });
 
-socket.on("message", m => addMsg(m.text, m.user === role));
-socket.on("image", i => addImg(i.data, i.user === role));
-socket.on("voice", v => addVoice(v.audio, v.user === role));
-
-socket.on("typing", u => document.getElementById("typing").innerText = `${u} typing...`);
-socket.on("stop-typing", () => document.getElementById("typing").innerText = "");
-
-socket.on("clear", () => document.getElementById("messages").innerHTML = "");
-
+/* -------- TEXT -------- */
 function sendMsg() {
-  const msg = document.getElementById("msg").value;
-  socket.emit("message", msg);
-  document.getElementById("msg").value = "";
+  if (!msg.value.trim()) return;
+  socket.emit("message", msg.value);
+  msg.value = "";
 }
 
-function typing(e) {
-  socket.emit("typing");
+msg.addEventListener("keydown", e => {
   if (e.key === "Enter") sendMsg();
+  socket.emit("typing");
   setTimeout(() => socket.emit("stop-typing"), 500);
-}
+});
 
+/* -------- IMAGE -------- */
 function sendImage() {
-  const file = document.getElementById("img").files[0];
+  const file = img.files[0];
+  if (!file) return;
+
   const reader = new FileReader();
   reader.onload = () => socket.emit("image", reader.result);
   reader.readAsDataURL(file);
 }
 
-function recordVoice() {
-  navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-    recorder = new MediaRecorder(stream);
-    recorder.start();
-    recorder.ondataavailable = e => chunks.push(e.data);
-    recorder.onstop = () => {
-      const blob = new Blob(chunks);
-      const reader = new FileReader();
-      reader.onload = () => socket.emit("voice", reader.result);
-      reader.readAsDataURL(blob);
-      chunks = [];
-    };
-    setTimeout(() => recorder.stop(), 3000);
-  });
+/* -------- VOICE -------- */
+async function recordVoice() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  mediaRecorder = new MediaRecorder(stream);
+  audioChunks = [];
+
+  mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+  mediaRecorder.onstop = () => {
+    const blob = new Blob(audioChunks, { type: "audio/webm" });
+    const reader = new FileReader();
+    reader.onload = () => socket.emit("voice", reader.result);
+    reader.readAsDataURL(blob);
+  };
+
+  mediaRecorder.start();
+  setTimeout(() => mediaRecorder.stop(), 3000);
 }
+
+/* -------- RENDER -------- */
+socket.on("message", m => addMsg(m.text, m.user === role));
+socket.on("image", i => addImg(i.data, i.user === role));
+socket.on("voice", v => addVoice(v.audio, v.user === role));
+socket.on("clear", () => messages.innerHTML = "");
 
 function addMsg(text, me) {
   const d = document.createElement("div");
   d.className = `msg ${me ? "me" : "other"}`;
-  d.innerText = text;
+  d.textContent = text;
   messages.appendChild(d);
 }
 

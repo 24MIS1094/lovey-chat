@@ -1,11 +1,10 @@
-socket.on("connected", () => {
-  console.log("SOCKET CONNECTED");
-});
-socket.on("joined", () => {
-  console.log("JOINED EVENT RECEIVED");
-});
+/* ===== GLOBAL STATE (MUST BE FIRST) ===== */
+let socket = null;
+let roomCode = "";
+let role = "";
 
-const socket = io("https://lovey-chat.onrender.com", {
+/* ===== SOCKET INIT ===== */
+socket = io("https://lovey-chat.onrender.com", {
   transports: ["polling"],
   reconnection: true,
   reconnectionAttempts: Infinity,
@@ -13,58 +12,65 @@ const socket = io("https://lovey-chat.onrender.com", {
   timeout: 20000
 });
 
+/* ===== SOCKET EVENTS ===== */
+socket.on("connected", () => {
+  console.log("SOCKET CONNECTED");
+});
 
-let roomCode = "";
-let role = "";
+socket.on("room-created", (code) => {
+  roomCode = code;
+  document.getElementById("codeBox").innerText = code;
+});
 
+socket.on("joined", () => {
+  document.getElementById("astrae").classList.add("hidden");
+  document.getElementById("cryon").classList.add("hidden");
+  document.getElementById("chat").classList.remove("hidden");
+});
+
+socket.on("wrong-code", () => {
+  document.getElementById("error").innerText = "Invalid code";
+});
+
+socket.on("system", (msg) => addMessage(msg, "sys"));
+socket.on("message", (msg) =>
+  addMessage(`${msg.user}: ${msg.text}`)
+);
+
+/* ===== UI ACTIONS ===== */
 function openAstrae() {
   role = "Astrae";
-  home.classList.add("hidden");
-  astrae.classList.remove("hidden");
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("astrae").classList.remove("hidden");
   socket.emit("create-room");
 }
 
 function openCryon() {
   role = "Cryon";
-  home.classList.add("hidden");
-  cryon.classList.remove("hidden");
+  document.getElementById("home").classList.add("hidden");
+  document.getElementById("cryon").classList.remove("hidden");
 }
-
-socket.on("room-created", code => {
-  roomCode = code;
-  codeBox.innerText = code;
-});
 
 function enterAsAstrae() {
   socket.emit("join-room", { code: roomCode, user: "Astrae" });
 }
 
 function enterAsCryon() {
-  socket.emit("join-room", { code: joinCode.value.trim(), user: "Cryon" });
+  const code = document.getElementById("joinCode").value.trim();
+  socket.emit("join-room", { code, user: "Cryon" });
 }
-
-socket.on("joined", () => {
-  astrae.classList.add("hidden");
-  cryon.classList.add("hidden");
-  chat.classList.remove("hidden");
-});
-
-socket.on("wrong-code", () => {
-  error.innerText = "Invalid or expired code";
-});
-
-socket.on("system", t => addMsg(t, "sys"));
-socket.on("message", m => addMsg(`${m.user}: ${m.text}`));
 
 function send() {
-  if (!msg.value.trim()) return;
-  socket.emit("message", msg.value);
-  msg.value = "";
+  const input = document.getElementById("msg");
+  if (!input.value.trim()) return;
+  socket.emit("message", input.value);
+  input.value = "";
 }
 
-function addMsg(t, c="") {
+/* ===== HELPERS ===== */
+function addMessage(text, cls = "") {
   const d = document.createElement("div");
-  d.className = c;
-  d.innerText = t;
-  messages.appendChild(d);
+  d.className = cls;
+  d.innerText = text;
+  document.getElementById("messages").appendChild(d);
 }

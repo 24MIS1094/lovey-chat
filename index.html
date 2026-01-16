@@ -7,38 +7,43 @@
 </head>
 <body>
 
-<h1 class="logo">LOVEY CHAT</h1>
+<div id="app">
 
-<!-- HOME -->
-<div id="home">
-  <button id="btnAstrae">ASTRAE</button>
-  <button id="btnCryon">CRYON</button>
+  <div id="home">
+    <h1 class="brand">LOVEY</h1>
+    <p class="tag">Private realtime chat</p>
+    <button id="astraeBtn">ASTRAE</button>
+    <button id="cryonBtn">CRYON</button>
+  </div>
+
+  <div id="astrae" class="hidden">
+    <h2>Your Code</h2>
+    <div id="roomCode" class="code"></div>
+    <button id="enterAstrae">Enter Chat</button>
+  </div>
+
+  <div id="cryon" class="hidden">
+    <input id="codeInput" placeholder="Enter code">
+    <button id="enterCryon">Enter Chat</button>
+    <p id="error"></p>
+  </div>
+
+  <div id="chat" class="hidden">
+    <div id="messages"></div>
+
+    <div class="inputBar">
+      <input id="text" placeholder="Message">
+      <input type="file" id="image" hidden>
+      <button id="emoji">😊</button>
+      <button id="imgBtn">📷</button>
+      <button id="voice">🎤</button>
+      <button id="send">➤</button>
+    </div>
+  </div>
+
 </div>
 
-<!-- ASTRAE -->
-<div id="astrae" class="hidden">
-  <p>Your code</p>
-  <div id="codeBox"></div>
-  <button id="btnAstraeEnter">ENTER CHAT</button>
-</div>
-
-<!-- CRYON -->
-<div id="cryon" class="hidden">
-  <input id="joinCode" placeholder="Enter code">
-  <button id="btnCryonEnter">ENTER CHAT</button>
-  <p id="error"></p>
-</div>
-
-<!-- CHAT -->
-<div id="chat" class="hidden">
-  <div id="messages"></div>
-  <input id="msg" placeholder="Type message">
-  <button id="sendBtn">Send</button>
-</div>
-
-<!-- SCRIPTS (ORDER MATTERS) -->
 <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 <script src="script.js"></script>
-
 </body>
 </html>

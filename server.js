@@ -9,10 +9,10 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: "https://lovey-chat.vercel.app",
+    origin: "*",              // 🔥 FIX
     methods: ["GET", "POST"]
   },
-  transports: ["polling"]
+  transports: ["polling"]     // keep polling (Render free safe)
 });
 
 const redis = new Redis({
@@ -23,12 +23,8 @@ const redis = new Redis({
 io.on("connection", (socket) => {
 
   socket.on("create-room", async () => {
-    const code = uuid().slice(0,6).toUpperCase();
-    await redis.set(`room:${code}`, {
-      users: [],
-      images: {},
-      messages: []
-    });
+    const code = uuid().slice(0, 6).toUpperCase();
+    await redis.set(`room:${code}`, { users: [], images: {} });
     socket.emit("room-created", code);
   });
 
@@ -40,13 +36,15 @@ io.on("connection", (socket) => {
     }
     room.users.push(user);
     await redis.set(`room:${code}`, room);
+
     socket.join(code);
     socket.room = code;
     socket.user = user;
+
     io.to(code).emit("system", `${user} joined`);
   });
 
-  socket.on("message", async (text) => {
+  socket.on("message", (text) => {
     if (!socket.room) return;
     io.to(socket.room).emit("message", {
       user: socket.user,
@@ -54,22 +52,8 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("image", async ({ id, data }) => {
-    const room = await redis.get(`room:${socket.room}`);
-    room.images[id] = 2;
-    await redis.set(`room:${socket.room}`, room);
+  socket.on("image", ({ id, data }) => {
     io.to(socket.room).emit("image", { id, data });
-  });
-
-  socket.on("view-image", async (id) => {
-    const room = await redis.get(`room:${socket.room}`);
-    if (!room.images[id]) return;
-    room.images[id]--;
-    if (room.images[id] <= 0) {
-      delete room.images[id];
-      io.to(socket.room).emit("remove-image", id);
-    }
-    await redis.set(`room:${socket.room}`, room);
   });
 
   socket.on("voice", (audio) => {
